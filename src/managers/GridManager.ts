@@ -181,13 +181,19 @@ export class GridManager {
   /**
    * Set building at position
    */
-  public setBuilding(position: GridPosition, buildingId: string): boolean {
+  public setBuilding(position: GridPosition, buildingId: string | null): boolean {
     if (!this.isValidPosition(position)) {
       return false;
     }
     
     const cell = this.grid[position.y]![position.x];
-    if (!cell || cell.buildingId !== null) {
+    if (!cell) {
+      return false;
+    }
+
+    // If removing a building (buildingId is null), allow it
+    // If placing a building, check if cell is empty
+    if (buildingId !== null && cell.buildingId !== null) {
       return false; // Cell already occupied
     }
     
@@ -197,7 +203,11 @@ export class GridManager {
     const key = `${position.x},${position.y}`;
     const cellRect = this.cellGraphics.get(key);
     if (cellRect) {
-      cellRect.setFillStyle(0x0ea5e9); // Blue for occupied
+      if (buildingId) {
+        cellRect.setFillStyle(0x0ea5e9); // Blue for occupied
+      } else {
+        cellRect.setFillStyle(0x1e293b); // Dark for empty
+      }
     }
     
     return true;

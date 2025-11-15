@@ -188,6 +188,74 @@ export class BuildingManager {
   }
 
   /**
+   * Remove a building and refund 50% of its cost
+   */
+  public removeBuilding(position: GridPosition): boolean {
+    const key = `${position.x},${position.y}`;
+    const placedBuilding = this.placedBuildings.get(key);
+
+    if (!placedBuilding) {
+      console.log('No building at this position');
+      return false;
+    }
+
+    const { building, iconText } = placedBuilding;
+
+    // Calculate 50% refund
+    const refund = {
+      cpu: Math.floor((building.cost.cpu || 0) / 2),
+      storage: Math.floor((building.cost.storage || 0) / 2),
+      quality: Math.floor((building.cost.quality || 0) / 2),
+      throughput: Math.floor((building.cost.throughput || 0) / 2),
+    };
+
+    // Refund resources
+    this.resourceEngine.addResources(refund);
+
+    // Remove visual
+    if (iconText) {
+      iconText.destroy();
+    }
+
+    // Remove from grid
+    this.gridManager.setBuilding(position, null);
+
+    // Remove from placed buildings
+    this.placedBuildings.delete(key);
+
+    // Add removal effect
+    this.createRemovalEffect(position);
+
+    console.log(`Removed ${building.name} at (${position.x}, ${position.y}), refunded 50%`);
+    return true;
+  }
+
+  /**
+   * Create removal effect
+   */
+  private createRemovalEffect(position: GridPosition): void {
+    const gridSize = 5;
+    const cellSize = 80;
+    const totalGridWidth = gridSize * cellSize;
+    const totalGridHeight = gridSize * cellSize;
+    const gridOffsetX = (800 - totalGridWidth) / 2;
+    const gridOffsetY = (600 - totalGridHeight) / 2 + 30;
+
+    const x = gridOffsetX + position.x * cellSize + cellSize / 2;
+    const y = gridOffsetY + position.y * cellSize + cellSize / 2;
+
+    // Create fading circle effect
+    const circle = this.scene.add.circle(x, y, 40, 0xef4444, 0.5);
+    this.scene.tweens.add({
+      targets: circle,
+      scale: 0.5,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => circle.destroy(),
+    });
+  }
+
+  /**
    * Get services produced count
    */
   public getServicesProduced(): number {

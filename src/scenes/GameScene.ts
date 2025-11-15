@@ -78,8 +78,8 @@ export class GameScene extends Phaser.Scene {
     // Add start message
     const gamesPlayed = StorageManager.getGamesPlayed();
     const startMsg = gamesPlayed > 0 
-      ? `🎮 Press SPACE to start\n\nClick cells to place buildings!\nGames played: ${gamesPlayed}`
-      : `🎮 Press SPACE to start\n\nClick cells to place buildings!\nGoal: Maximize score in 5 minutes`;
+      ? `🎮 Press SPACE to start\n\nClick cells to place buildings!\nShift+Click to remove (50% refund)\nGames played: ${gamesPlayed}`
+      : `🎮 Press SPACE to start\n\nClick cells to place buildings!\nShift+Click to remove (50% refund)\nGoal: Maximize score in 5 minutes`;
     
     const message = this.add.text(400, 150, startMsg, {
       fontSize: '16px',
@@ -119,12 +119,26 @@ export class GameScene extends Phaser.Scene {
     // Initialize building menu
     this.buildingMenu = new BuildingMenu(this, this.resourceEngine);
 
-    // Set grid click callback to open building menu
+    // Set grid click callback to open building menu or remove building
     this.gridManager.setCellClickCallback((x, y) => {
       if (!this.gameStarted || this.gameEnded) return;
       
       const cell = this.gridManager.getCell({ x, y });
-      if (cell && !cell.buildingId) {
+      
+      // Check if Shift key is pressed for removal
+      const shiftKey = this.input.keyboard?.addKey('SHIFT');
+      const isShiftPressed = shiftKey?.isDown || false;
+      
+      if (cell && cell.buildingId && isShiftPressed) {
+        // Remove building with Shift+Click
+        const success = this.buildingManager.removeBuilding({ x, y });
+        if (success) {
+          const rates = this.adjacencyEngine.calculateRatesWithAdjacency();
+          this.resourceEngine.setResourceRates(rates);
+          this.updateHUD();
+        }
+      } else if (cell && !cell.buildingId) {
+        // Place building on empty cell
         this.buildingMenu.show(x, y, (buildingId) => {
           const success = this.buildingManager.placeBuilding(buildingId, { x, y });
           if (success) {
