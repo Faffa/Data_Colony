@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import gameConfig from '../config/gameConfig.json';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
@@ -132,7 +133,6 @@ export class DifficultyMenu {
    * Get difficulty configuration
    */
   private getDifficultyConfig(difficulty: Difficulty): DifficultyConfig {
-    const gameConfig = require('../config/gameConfig.json');
     return gameConfig.difficulties[difficulty];
   }
 
