@@ -152,4 +152,31 @@ export class AdjacencyEngine {
 
     return info;
   }
+
+  /**
+   * Get all positions that have active adjacency bonuses
+   */
+  public getActiveAdjacencyPositions(): Set<string> {
+    const activePositions = new Set<string>();
+    const placedBuildings = this.buildingManager.getPlacedBuildings();
+
+    for (const placedBuilding of placedBuildings) {
+      const { building, position } = placedBuilding;
+      const neighbors = this.gridManager.getNeighbors(position);
+
+      // Check if this building has any active adjacency bonuses
+      for (const rule of building.adjacencyRules) {
+        const hasMatch = neighbors.some(
+          (neighbor) => neighbor.buildingId === rule.targetBuildingId
+        );
+        if (hasMatch) {
+          const key = `${position.x},${position.y}`;
+          activePositions.add(key);
+          break;
+        }
+      }
+    }
+
+    return activePositions;
+  }
 }

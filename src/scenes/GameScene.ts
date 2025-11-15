@@ -143,6 +143,8 @@ export class GameScene extends Phaser.Scene {
         if (success) {
           const rates = this.adjacencyEngine.calculateRatesWithAdjacency();
           this.resourceEngine.setResourceRates(rates);
+          const activePositions = this.adjacencyEngine.getActiveAdjacencyPositions();
+          this.buildingManager.updateAdjacencyHighlights(activePositions);
           this.updateHUD();
         }
       } else if (cell && !cell.buildingId) {
@@ -152,6 +154,8 @@ export class GameScene extends Phaser.Scene {
           if (success) {
             const rates = this.adjacencyEngine.calculateRatesWithAdjacency();
             this.resourceEngine.setResourceRates(rates);
+            const activePositions = this.adjacencyEngine.getActiveAdjacencyPositions();
+            this.buildingManager.updateAdjacencyHighlights(activePositions);
             this.updateHUD();
           }
         });
@@ -169,6 +173,10 @@ export class GameScene extends Phaser.Scene {
       
       // Update resources
       this.resourceEngine.tick();
+      
+      // Update adjacency highlights
+      const activePositions = this.adjacencyEngine.getActiveAdjacencyPositions();
+      this.buildingManager.updateAdjacencyHighlights(activePositions);
       
       // Update timer
       this.timeRemaining--;

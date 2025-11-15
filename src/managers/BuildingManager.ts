@@ -11,6 +11,7 @@ export interface PlacedBuilding {
   building: Building;
   position: GridPosition;
   iconText?: Phaser.GameObjects.Text;
+  adjacencyGlow?: Phaser.GameObjects.Arc;
 }
 
 /**
@@ -281,6 +282,59 @@ export class BuildingManager {
   }
 
   /**
+   * Update adjacency highlights based on active bonuses
+   */
+  public updateAdjacencyHighlights(activePositions: Set<string>): void {
+    // Remove existing glows
+    for (const [, placedBuilding] of this.placedBuildings) {
+      if (placedBuilding.adjacencyGlow) {
+        placedBuilding.adjacencyGlow.destroy();
+        placedBuilding.adjacencyGlow = undefined;
+      }
+    }
+
+    // Add glows to buildings with active adjacency bonuses
+    for (const positionKey of activePositions) {
+      const placedBuilding = this.placedBuildings.get(positionKey);
+      if (placedBuilding) {
+        const glow = this.createAdjacencyGlow(placedBuilding.position);
+        placedBuilding.adjacencyGlow = glow;
+      }
+    }
+  }
+
+  /**
+   * Create adjacency glow effect
+   */
+  private createAdjacencyGlow(position: GridPosition): Phaser.GameObjects.Arc {
+    const gridSize = 5;
+    const cellSize = 80;
+    const totalGridWidth = gridSize * cellSize;
+    const totalGridHeight = gridSize * cellSize;
+    const gridOffsetX = (800 - totalGridWidth) / 2;
+    const gridOffsetY = (600 - totalGridHeight) / 2 + 30;
+
+    const x = gridOffsetX + position.x * cellSize + cellSize / 2;
+    const y = gridOffsetY + position.y * cellSize + cellSize / 2;
+
+    // Create pulsing glow circle
+    const glow = this.scene.add.circle(x, y, 30, 0xfbbf24, 0.3);
+    glow.setStrokeStyle(2, 0xfbbf24, 0.6);
+
+    // Pulsing animation
+    this.scene.tweens.add({
+      targets: glow,
+      alpha: 0.6,
+      scale: 1.1,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    return glow;
+  }
+
+  /**
    * Get services produced count
    */
   public getServicesProduced(): number {
@@ -298,10 +352,13 @@ export class BuildingManager {
    * Clear all buildings
    */
   public clear(): void {
-    // Remove all icon visuals
+    // Remove all icon visuals and glows
     for (const [, placedBuilding] of this.placedBuildings) {
       if (placedBuilding.iconText) {
         placedBuilding.iconText.destroy();
+      }
+      if (placedBuilding.adjacencyGlow) {
+        placedBuilding.adjacencyGlow.destroy();
       }
     }
 
