@@ -2,6 +2,45 @@
   "gridSize": 5,
   "gameDuration": 300,
   "tickInterval": 1000,
+  "difficulty": "normal",
+  "difficulties": {
+    "easy": {
+      "name": "Easy",
+      "description": "More resources, lower costs",
+      "startingResources": {
+        "cpu": 20,
+        "storage": 20,
+        "quality": 0,
+        "throughput": 0
+      },
+      "costMultiplier": 0.75,
+      "gameDuration": 360
+    },
+    "normal": {
+      "name": "Normal",
+      "description": "Balanced gameplay",
+      "startingResources": {
+        "cpu": 10,
+        "storage": 10,
+        "quality": 0,
+        "throughput": 0
+      },
+      "costMultiplier": 1.0,
+      "gameDuration": 300
+    },
+    "hard": {
+      "name": "Hard",
+      "description": "Limited resources, higher costs",
+      "startingResources": {
+        "cpu": 5,
+        "storage": 5,
+        "quality": 0,
+        "throughput": 0
+      },
+      "costMultiplier": 1.5,
+      "gameDuration": 240
+    }
+  },
   "startingResources": {
     "cpu": 10,
     "storage": 10,
@@ -9,3 +48,4 @@
     "throughput": 0
   }
 }
+

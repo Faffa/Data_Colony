@@ -7,6 +7,7 @@ import { TickEngine } from '../engine/TickEngine';
 import { AdjacencyEngine } from '../engine/AdjacencyEngine';
 import { ScoreEngine } from '../engine/ScoreEngine';
 import { BuildingMenu } from '../ui/BuildingMenu';
+import { DifficultyMenu, Difficulty } from '../ui/DifficultyMenu';
 import { StorageManager } from '../managers/StorageManager';
 import gameConfig from '../config/gameConfig.json';
 
@@ -21,6 +22,7 @@ export class GameScene extends Phaser.Scene {
   private adjacencyEngine!: AdjacencyEngine;
   private buildingRegistry!: BuildingRegistry;
   private buildingMenu!: BuildingMenu;
+  private difficultyMenu!: DifficultyMenu;
   private hudTexts: Map<string, Phaser.GameObjects.Text>;
   private gameStarted: boolean;
   private gameEnded: boolean;
@@ -78,8 +80,8 @@ export class GameScene extends Phaser.Scene {
     // Add start message
     const gamesPlayed = StorageManager.getGamesPlayed();
     const startMsg = gamesPlayed > 0 
-      ? `🎮 Press SPACE to start\n\nClick cells to place buildings!\nShift+Click to remove (50% refund)\nGames played: ${gamesPlayed}`
-      : `🎮 Press SPACE to start\n\nClick cells to place buildings!\nShift+Click to remove (50% refund)\nGoal: Maximize score in 5 minutes`;
+      ? `🎮 Press SPACE to select difficulty\n\nClick cells to place buildings!\nShift+Click to remove (50% refund)\nGames played: ${gamesPlayed}`
+      : `🎮 Press SPACE to select difficulty\n\nClick cells to place buildings!\nShift+Click to remove (50% refund)\nGoal: Maximize score in 5 minutes`;
     
     const message = this.add.text(400, 150, startMsg, {
       fontSize: '16px',
@@ -88,10 +90,16 @@ export class GameScene extends Phaser.Scene {
     });
     message.setOrigin(0.5);
 
-    // Start game on SPACE
+    // Initialize difficulty menu
+    this.difficultyMenu = new DifficultyMenu(this);
+
+    // Show difficulty selection on SPACE
     this.input.keyboard?.once('keydown-SPACE', () => {
       message.destroy();
-      this.startGame();
+      this.difficultyMenu.show((difficulty) => {
+        this.applyDifficulty(difficulty);
+        this.startGame();
+      });
     });
 
     console.log('GameScene created successfully!');
@@ -195,6 +203,31 @@ export class GameScene extends Phaser.Scene {
     });
 
     console.log('Keyboard shortcuts: 1-6 to place buildings');
+  }
+
+  /**
+   * Apply difficulty settings
+   */
+  private applyDifficulty(difficulty: Difficulty): void {
+    const difficultyConfig = gameConfig.difficulties[difficulty];
+    
+    // Update starting resources
+    this.resourceEngine = new ResourceEngine(difficultyConfig.startingResources);
+    
+    // Update building manager with cost multiplier
+    this.buildingManager.setCostMultiplier(difficultyConfig.costMultiplier);
+    
+    // Update building menu to reflect new costs
+    this.buildingMenu = new BuildingMenu(this, this.resourceEngine);
+    
+    // Update game duration
+    this.timeRemaining = difficultyConfig.gameDuration;
+    this.timerText.setText(this.formatTime(this.timeRemaining));
+    
+    console.log(`Difficulty set to: ${difficultyConfig.name}`);
+    console.log(`Starting resources:`, difficultyConfig.startingResources);
+    console.log(`Game duration: ${difficultyConfig.gameDuration}s`);
+    console.log(`Cost multiplier: ${difficultyConfig.costMultiplier}x`);
   }
 
   /**

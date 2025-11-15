@@ -23,11 +23,13 @@ export class BuildingManager {
   private resourceEngine: ResourceEngine;
   private placedBuildings: Map<string, PlacedBuilding>; // key: "x,y"
   private servicesProduced: number;
+  private costMultiplier: number;
 
   constructor(
     scene: Phaser.Scene,
     gridManager: GridManager,
-    resourceEngine: ResourceEngine
+    resourceEngine: ResourceEngine,
+    costMultiplier: number = 1.0
   ) {
     this.scene = scene;
     this.registry = BuildingRegistry.getInstance();
@@ -35,6 +37,26 @@ export class BuildingManager {
     this.resourceEngine = resourceEngine;
     this.placedBuildings = new Map();
     this.servicesProduced = 0;
+    this.costMultiplier = costMultiplier;
+  }
+
+  /**
+   * Set cost multiplier (for difficulty modes)
+   */
+  public setCostMultiplier(multiplier: number): void {
+    this.costMultiplier = multiplier;
+  }
+
+  /**
+   * Get adjusted cost based on difficulty multiplier
+   */
+  private getAdjustedCost(baseCost: { cpu?: number; storage?: number; quality?: number; throughput?: number }) {
+    return {
+      cpu: Math.ceil((baseCost.cpu || 0) * this.costMultiplier),
+      storage: Math.ceil((baseCost.storage || 0) * this.costMultiplier),
+      quality: Math.ceil((baseCost.quality || 0) * this.costMultiplier),
+      throughput: Math.ceil((baseCost.throughput || 0) * this.costMultiplier),
+    };
   }
 
   /**
@@ -54,31 +76,34 @@ export class BuildingManager {
       return false;
     }
 
+    // Get adjusted cost based on difficulty
+    const adjustedCost = this.getAdjustedCost(building.cost);
+
     // Check if we can afford it
-    if (!this.resourceEngine.canAfford(building.cost)) {
+    if (!this.resourceEngine.canAfford(adjustedCost)) {
       console.log('Cannot afford building');
       return false;
     }
 
     // Deduct cost
-    if (!this.resourceEngine.deductResources(building.cost)) {
+    if (!this.resourceEngine.deductResources(adjustedCost)) {
       return false;
     }
 
     // Place building on grid
     if (!this.gridManager.setBuilding(position, building.id)) {
       // Refund if placement failed
-      this.resourceEngine.addResources(building.cost);
+      this.resourceEngine.addResources(adjustedCost);
       return false;
     }
 
     // Create building icon
     const iconText = this.createBuildingIcon(building, position);
 
-    // Store placed building
+    // Store placed building with adjusted cost
     const key = `${position.x},${position.y}`;
     this.placedBuildings.set(key, {
-      building,
+      building: { ...building, cost: adjustedCost },
       position,
       iconText,
     });
