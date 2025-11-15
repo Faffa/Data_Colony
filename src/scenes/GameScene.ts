@@ -225,8 +225,8 @@ export class GameScene extends Phaser.Scene {
     // Update building manager with cost multiplier
     this.buildingManager.setCostMultiplier(difficultyConfig.costMultiplier);
     
-    // Update building menu to reflect new costs
-    this.buildingMenu = new BuildingMenu(this, this.resourceEngine);
+    // Update building menu with cost multiplier
+    this.buildingMenu.setCostMultiplier(difficultyConfig.costMultiplier);
     
     // Update game duration
     this.timeRemaining = difficultyConfig.gameDuration;

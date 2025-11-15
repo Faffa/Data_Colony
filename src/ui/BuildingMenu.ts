@@ -13,13 +13,34 @@ export class BuildingMenu {
   private container: Phaser.GameObjects.Container | null;
   private isVisible: boolean;
   private onBuildingSelected?: (buildingId: string) => void;
+  private costMultiplier: number;
 
-  constructor(scene: Phaser.Scene, resourceEngine: ResourceEngine) {
+  constructor(scene: Phaser.Scene, resourceEngine: ResourceEngine, costMultiplier: number = 1.0) {
     this.scene = scene;
     this.registry = BuildingRegistry.getInstance();
     this.resourceEngine = resourceEngine;
     this.container = null;
     this.isVisible = false;
+    this.costMultiplier = costMultiplier;
+  }
+
+  /**
+   * Set cost multiplier (for difficulty modes)
+   */
+  public setCostMultiplier(multiplier: number): void {
+    this.costMultiplier = multiplier;
+  }
+
+  /**
+   * Get adjusted cost based on difficulty multiplier
+   */
+  private getAdjustedCost(baseCost: { cpu?: number; storage?: number; quality?: number; throughput?: number }) {
+    return {
+      cpu: Math.ceil((baseCost.cpu || 0) * this.costMultiplier),
+      storage: Math.ceil((baseCost.storage || 0) * this.costMultiplier),
+      quality: Math.ceil((baseCost.quality || 0) * this.costMultiplier),
+      throughput: Math.ceil((baseCost.throughput || 0) * this.costMultiplier),
+    };
   }
 
   /**
@@ -103,7 +124,9 @@ export class BuildingMenu {
   private createBuildingItem(building: Building, x: number, y: number, width: number): void {
     if (!this.container) return;
 
-    const canAfford = this.resourceEngine.canAfford(building.cost);
+    // Get adjusted cost for difficulty
+    const adjustedCost = this.getAdjustedCost(building.cost);
+    const canAfford = this.resourceEngine.canAfford(adjustedCost);
 
     // Item background
     const itemBg = this.scene.add.rectangle(x, y, width, 60, canAfford ? 0x334155 : 0x1e1e1e, 1);
@@ -133,8 +156,8 @@ export class BuildingMenu {
     });
     this.container.add(name);
 
-    // Cost
-    const costText = this.getCostText(building);
+    // Cost (show adjusted cost)
+    const costText = this.getCostText(building, adjustedCost);
     const cost = this.scene.add.text(x - width / 2 + 60, y + 5, costText, {
       fontSize: '12px',
       color: canAfford ? '#94a3b8' : '#ef4444',
@@ -155,12 +178,13 @@ export class BuildingMenu {
   /**
    * Get cost display text
    */
-  private getCostText(building: Building): string {
+  private getCostText(building: Building, adjustedCost?: { cpu?: number; storage?: number; quality?: number; throughput?: number }): string {
+    const cost = adjustedCost || building.cost;
     const costs: string[] = [];
-    if (building.cost.cpu) costs.push(`${building.cost.cpu} CPU`);
-    if (building.cost.storage) costs.push(`${building.cost.storage} Storage`);
-    if (building.cost.quality) costs.push(`${building.cost.quality} Quality`);
-    if (building.cost.throughput) costs.push(`${building.cost.throughput} Throughput`);
+    if (cost.cpu) costs.push(`${cost.cpu} CPU`);
+    if (cost.storage) costs.push(`${cost.storage} Storage`);
+    if (cost.quality) costs.push(`${cost.quality} Quality`);
+    if (cost.throughput) costs.push(`${cost.throughput} Throughput`);
     return costs.length > 0 ? `Cost: ${costs.join(', ')}` : 'Free';
   }
 
