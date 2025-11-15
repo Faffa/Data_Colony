@@ -7,6 +7,7 @@ import { TickEngine } from '../engine/TickEngine';
 import { AdjacencyEngine } from '../engine/AdjacencyEngine';
 import { ScoreEngine } from '../engine/ScoreEngine';
 import { BuildingMenu } from '../ui/BuildingMenu';
+import { StorageManager } from '../managers/StorageManager';
 import gameConfig from '../config/gameConfig.json';
 
 /**
@@ -50,6 +51,16 @@ export class GameScene extends Phaser.Scene {
     });
     title.setOrigin(0.5);
 
+    // Add high score display
+    const highScore = StorageManager.getHighScore();
+    if (highScore > 0) {
+      const highScoreText = this.add.text(700, 20, `High Score: ${ScoreEngine.formatScore(highScore)}`, {
+        fontSize: '14px',
+        color: '#fbbf24',
+      });
+      highScoreText.setOrigin(0.5);
+    }
+
     // Initialize game systems
     this.initializeGameSystems();
 
@@ -65,7 +76,12 @@ export class GameScene extends Phaser.Scene {
     this.timerText.setOrigin(0.5);
 
     // Add start message
-    const message = this.add.text(400, 150, '🎮 Press SPACE to start\n\nClick cells to place buildings!\nGoal: Maximize score in 5 minutes', {
+    const gamesPlayed = StorageManager.getGamesPlayed();
+    const startMsg = gamesPlayed > 0 
+      ? `🎮 Press SPACE to start\n\nClick cells to place buildings!\nGames played: ${gamesPlayed}`
+      : `🎮 Press SPACE to start\n\nClick cells to place buildings!\nGoal: Maximize score in 5 minutes`;
+    
+    const message = this.add.text(400, 150, startMsg, {
       fontSize: '16px',
       color: '#94a3b8',
       align: 'center',
@@ -287,14 +303,20 @@ export class GameScene extends Phaser.Scene {
     this.gameStarted = false;
     this.tickEngine.stop();
     
+    // Increment games played
+    StorageManager.incrementGamesPlayed();
+    
     // Calculate final score
     const score = ScoreEngine.calculateScore(
       this.buildingManager.getServicesProduced(),
       this.resourceEngine.getResources()
     );
     
+    // Check for new high score
+    const isNewHighScore = StorageManager.setHighScore(score.total);
+    
     // Show game over screen
-    this.showGameOverScreen(score);
+    this.showGameOverScreen(score, isNewHighScore);
     
     console.log('Game ended! Final score:', score.total);
   }
@@ -302,7 +324,7 @@ export class GameScene extends Phaser.Scene {
   /**
    * Show game over screen
    */
-  private showGameOverScreen(score: any): void {
+  private showGameOverScreen(score: any, isNewHighScore: boolean = false): void {
     const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.8);
     overlay.setDepth(2000);
 
@@ -310,16 +332,18 @@ export class GameScene extends Phaser.Scene {
     container.setDepth(2001);
 
     // Title
-    const title = this.add.text(0, -150, 'GAME OVER', {
+    const titleText = isNewHighScore ? '🎉 NEW HIGH SCORE! 🎉' : 'GAME OVER';
+    const titleColor = isNewHighScore ? '#fbbf24' : '#3b82f6';
+    const title = this.add.text(0, -180, titleText, {
       fontSize: '48px',
-      color: '#3b82f6',
+      color: titleColor,
       fontStyle: 'bold',
     });
     title.setOrigin(0.5);
     container.add(title);
 
     // Score breakdown
-    const scoreText = this.add.text(0, -80, 
+    const scoreText = this.add.text(0, -100, 
       `Services: ${score.services} × 100 = ${score.services * 100}\n` +
       `Quality: ${score.quality} × 10 = ${score.quality * 10}\n` +
       `Throughput: ${score.throughput} = ${score.throughput}\n`,
@@ -333,7 +357,7 @@ export class GameScene extends Phaser.Scene {
     container.add(scoreText);
 
     // Total score
-    const totalScore = this.add.text(0, 20, `TOTAL SCORE: ${ScoreEngine.formatScore(score.total)}`, {
+    const totalScore = this.add.text(0, 0, `TOTAL SCORE: ${ScoreEngine.formatScore(score.total)}`, {
       fontSize: '32px',
       color: '#22c55e',
       fontStyle: 'bold',
@@ -341,16 +365,34 @@ export class GameScene extends Phaser.Scene {
     totalScore.setOrigin(0.5);
     container.add(totalScore);
 
+    // High score display
+    const highScore = StorageManager.getHighScore();
+    const highScoreText = this.add.text(0, 40, `High Score: ${ScoreEngine.formatScore(highScore)}`, {
+      fontSize: '18px',
+      color: '#fbbf24',
+    });
+    highScoreText.setOrigin(0.5);
+    container.add(highScoreText);
+
     // Rank
-    const rank = this.add.text(0, 70, ScoreEngine.getScoreRank(score.total), {
+    const rank = this.add.text(0, 80, ScoreEngine.getScoreRank(score.total), {
       fontSize: '24px',
       color: '#fbbf24',
     });
     rank.setOrigin(0.5);
     container.add(rank);
 
+    // Stats
+    const gamesPlayed = StorageManager.getGamesPlayed();
+    const stats = this.add.text(0, 115, `Games Played: ${gamesPlayed}`, {
+      fontSize: '14px',
+      color: '#64748b',
+    });
+    stats.setOrigin(0.5);
+    container.add(stats);
+
     // Play again button
-    const playAgainBtn = this.add.text(0, 130, '🔄 PLAY AGAIN (SPACE)', {
+    const playAgainBtn = this.add.text(0, 160, '🔄 PLAY AGAIN (SPACE)', {
       fontSize: '20px',
       color: '#ffffff',
       backgroundColor: '#3b82f6',

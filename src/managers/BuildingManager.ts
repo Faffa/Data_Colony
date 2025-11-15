@@ -83,8 +83,36 @@ export class BuildingManager {
       iconText,
     });
 
+    // Add placement effect
+    this.createPlacementEffect(position);
+
     console.log(`Placed ${building.name} at (${position.x}, ${position.y})`);
     return true;
+  }
+
+  /**
+   * Create placement effect
+   */
+  private createPlacementEffect(position: GridPosition): void {
+    const gridSize = 5;
+    const cellSize = 80;
+    const totalGridWidth = gridSize * cellSize;
+    const totalGridHeight = gridSize * cellSize;
+    const gridOffsetX = (800 - totalGridWidth) / 2;
+    const gridOffsetY = (600 - totalGridHeight) / 2 + 30;
+
+    const x = gridOffsetX + position.x * cellSize + cellSize / 2;
+    const y = gridOffsetY + position.y * cellSize + cellSize / 2;
+
+    // Create pulsing circle effect
+    const circle = this.scene.add.circle(x, y, 40, 0x22c55e, 0.5);
+    this.scene.tweens.add({
+      targets: circle,
+      scale: 1.5,
+      alpha: 0,
+      duration: 400,
+      onComplete: () => circle.destroy(),
+    });
   }
 
   /**
