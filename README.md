@@ -162,6 +162,7 @@ MIT
 
 ## 🔗 Links
 
+- **🎮 Play Live**: https://faffa.github.io/Data_Colony/
 - **Repository**: https://github.com/Faffa/Data_Colony.git
 - **Issues**: https://github.com/Faffa/Data_Colony/issues
 
