@@ -1,0 +1,11 @@
+{
+  "gridSize": 5,
+  "gameDuration": 300,
+  "tickInterval": 1000,
+  "startingResources": {
+    "cpu": 10,
+    "storage": 10,
+    "quality": 0,
+    "throughput": 0
+  }
+}

@@ -1,0 +1,136 @@
+[
+  {
+    "id": "cpu-node",
+    "name": "CPU Node",
+    "icon": "⚙️",
+    "description": "Produces CPU cycles. Bonus when adjacent to other CPU Nodes.",
+    "cost": {
+      "storage": 3
+    },
+    "production": {
+      "cpu": 2
+    },
+    "consumption": {},
+    "adjacencyRules": [
+      {
+        "targetBuildingId": "cpu-node",
+        "modifier": {
+          "cpuRate": 0.2
+        },
+        "description": "+10% CPU per adjacent CPU Node"
+      }
+    ]
+  },
+  {
+    "id": "storage-block",
+    "name": "Storage Block",
+    "icon": "💾",
+    "description": "Produces storage capacity. Bonus when adjacent to Data Lake.",
+    "cost": {
+      "cpu": 2
+    },
+    "production": {
+      "storage": 2
+    },
+    "consumption": {},
+    "adjacencyRules": [
+      {
+        "targetBuildingId": "data-lake",
+        "modifier": {
+          "storageRate": 1
+        },
+        "description": "+1 Storage if next to Data Lake"
+      }
+    ]
+  },
+  {
+    "id": "data-lake",
+    "name": "Data Lake",
+    "icon": "🌊",
+    "description": "Stores large amounts of data. Provides adjacency bonuses to nearby buildings.",
+    "cost": {
+      "cpu": 5
+    },
+    "production": {
+      "storage": 1
+    },
+    "consumption": {},
+    "adjacencyRules": []
+  },
+  {
+    "id": "etl-pipeline",
+    "name": "ETL Pipeline",
+    "icon": "🔗",
+    "description": "Converts CPU and Storage into Throughput. Bonus when adjacent to Data Lake.",
+    "cost": {
+      "storage": 2
+    },
+    "production": {
+      "throughput": 3
+    },
+    "consumption": {
+      "cpu": 1,
+      "storage": 1
+    },
+    "adjacencyRules": [
+      {
+        "targetBuildingId": "data-lake",
+        "modifier": {
+          "throughputRate": 0.6
+        },
+        "description": "+20% Throughput if next to Data Lake"
+      }
+    ]
+  },
+  {
+    "id": "quality-scanner",
+    "name": "Quality Scanner",
+    "icon": "📊",
+    "description": "Produces Data Quality. Bonus when adjacent to ETL Pipeline.",
+    "cost": {
+      "cpu": 2
+    },
+    "production": {
+      "quality": 1
+    },
+    "consumption": {},
+    "adjacencyRules": [
+      {
+        "targetBuildingId": "etl-pipeline",
+        "modifier": {
+          "qualityRate": 1
+        },
+        "description": "+1 Quality if next to ETL"
+      }
+    ]
+  },
+  {
+    "id": "service-gateway",
+    "name": "Service Gateway",
+    "icon": "🚀",
+    "description": "Produces Services by consuming CPU and Throughput. Bonus when adjacent to Quality Scanner.",
+    "cost": {
+      "cpu": 3,
+      "storage": 2
+    },
+    "production": {},
+    "consumption": {
+      "cpu": 2,
+      "throughput": 1
+    },
+    "adjacencyRules": [
+      {
+        "targetBuildingId": "quality-scanner",
+        "modifier": {
+          "cpuRate": 0.2
+        },
+        "description": "+20% output if next to Quality Scanner"
+      }
+    ],
+    "specialProduction": {
+      "resourceType": "quality",
+      "amount": 1,
+      "interval": 3
+    }
+  }
+]
