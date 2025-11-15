@@ -5,6 +5,8 @@ import { BuildingRegistry } from '../managers/BuildingRegistry';
 import { ResourceEngine } from '../engine/ResourceEngine';
 import { TickEngine } from '../engine/TickEngine';
 import { AdjacencyEngine } from '../engine/AdjacencyEngine';
+import { ScoreEngine } from '../engine/ScoreEngine';
+import { BuildingMenu } from '../ui/BuildingMenu';
 import gameConfig from '../config/gameConfig.json';
 
 /**
@@ -17,13 +19,19 @@ export class GameScene extends Phaser.Scene {
   private tickEngine!: TickEngine;
   private adjacencyEngine!: AdjacencyEngine;
   private buildingRegistry!: BuildingRegistry;
+  private buildingMenu!: BuildingMenu;
   private hudTexts: Map<string, Phaser.GameObjects.Text>;
   private gameStarted: boolean;
+  private gameEnded: boolean;
+  private timeRemaining: number;
+  private timerText!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'GameScene' });
     this.hudTexts = new Map();
     this.gameStarted = false;
+    this.gameEnded = false;
+    this.timeRemaining = gameConfig.gameDuration;
   }
 
   preload(): void {
@@ -48,10 +56,19 @@ export class GameScene extends Phaser.Scene {
     // Create HUD
     this.createHUD();
 
+    // Create timer display
+    this.timerText = this.add.text(700, 50, this.formatTime(this.timeRemaining), {
+      fontSize: '24px',
+      color: '#22c55e',
+      fontStyle: 'bold',
+    });
+    this.timerText.setOrigin(0.5);
+
     // Add start message
-    const message = this.add.text(400, 150, 'Press SPACE to start', {
-      fontSize: '18px',
+    const message = this.add.text(400, 150, '🎮 Press SPACE to start\n\nClick cells to place buildings!\nGoal: Maximize score in 5 minutes', {
+      fontSize: '16px',
       color: '#94a3b8',
+      align: 'center',
     });
     message.setOrigin(0.5);
 
@@ -83,6 +100,26 @@ export class GameScene extends Phaser.Scene {
     // Initialize adjacency engine
     this.adjacencyEngine = new AdjacencyEngine(this.gridManager, this.buildingManager);
 
+    // Initialize building menu
+    this.buildingMenu = new BuildingMenu(this, this.resourceEngine);
+
+    // Set grid click callback to open building menu
+    this.gridManager.setCellClickCallback((x, y) => {
+      if (!this.gameStarted || this.gameEnded) return;
+      
+      const cell = this.gridManager.getCell({ x, y });
+      if (cell && !cell.buildingId) {
+        this.buildingMenu.show(x, y, (buildingId) => {
+          const success = this.buildingManager.placeBuilding(buildingId, { x, y });
+          if (success) {
+            const rates = this.adjacencyEngine.calculateRatesWithAdjacency();
+            this.resourceEngine.setResourceRates(rates);
+            this.updateHUD();
+          }
+        });
+      }
+    });
+
     // Initialize tick engine
     this.tickEngine = new TickEngine(this, gameConfig.tickInterval);
 
@@ -94,7 +131,15 @@ export class GameScene extends Phaser.Scene {
       
       // Update resources
       this.resourceEngine.tick();
+      
+      // Update timer
+      this.timeRemaining--;
+      if (this.timeRemaining <= 0) {
+        this.endGame();
+      }
+      
       this.updateHUD();
+      this.updateTimer();
     });
 
     // Add keyboard shortcuts for building placement (testing)
@@ -224,9 +269,134 @@ export class GameScene extends Phaser.Scene {
    */
   private startGame(): void {
     this.gameStarted = true;
+    this.gameEnded = false;
+    this.timeRemaining = gameConfig.gameDuration;
     this.tickEngine.start();
     this.updateHUD();
+    this.updateTimer();
     console.log('Game started!');
+  }
+
+  /**
+   * End the game
+   */
+  private endGame(): void {
+    if (this.gameEnded) return;
+    
+    this.gameEnded = true;
+    this.gameStarted = false;
+    this.tickEngine.stop();
+    
+    // Calculate final score
+    const score = ScoreEngine.calculateScore(
+      this.buildingManager.getServicesProduced(),
+      this.resourceEngine.getResources()
+    );
+    
+    // Show game over screen
+    this.showGameOverScreen(score);
+    
+    console.log('Game ended! Final score:', score.total);
+  }
+
+  /**
+   * Show game over screen
+   */
+  private showGameOverScreen(score: any): void {
+    const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.8);
+    overlay.setDepth(2000);
+
+    const container = this.add.container(400, 300);
+    container.setDepth(2001);
+
+    // Title
+    const title = this.add.text(0, -150, 'GAME OVER', {
+      fontSize: '48px',
+      color: '#3b82f6',
+      fontStyle: 'bold',
+    });
+    title.setOrigin(0.5);
+    container.add(title);
+
+    // Score breakdown
+    const scoreText = this.add.text(0, -80, 
+      `Services: ${score.services} × 100 = ${score.services * 100}\n` +
+      `Quality: ${score.quality} × 10 = ${score.quality * 10}\n` +
+      `Throughput: ${score.throughput} = ${score.throughput}\n`,
+      {
+        fontSize: '20px',
+        color: '#94a3b8',
+        align: 'center',
+      }
+    );
+    scoreText.setOrigin(0.5);
+    container.add(scoreText);
+
+    // Total score
+    const totalScore = this.add.text(0, 20, `TOTAL SCORE: ${ScoreEngine.formatScore(score.total)}`, {
+      fontSize: '32px',
+      color: '#22c55e',
+      fontStyle: 'bold',
+    });
+    totalScore.setOrigin(0.5);
+    container.add(totalScore);
+
+    // Rank
+    const rank = this.add.text(0, 70, ScoreEngine.getScoreRank(score.total), {
+      fontSize: '24px',
+      color: '#fbbf24',
+    });
+    rank.setOrigin(0.5);
+    container.add(rank);
+
+    // Play again button
+    const playAgainBtn = this.add.text(0, 130, '🔄 PLAY AGAIN (SPACE)', {
+      fontSize: '20px',
+      color: '#ffffff',
+      backgroundColor: '#3b82f6',
+      padding: { x: 20, y: 10 },
+    });
+    playAgainBtn.setOrigin(0.5);
+    playAgainBtn.setInteractive({ useHandCursor: true });
+    playAgainBtn.on('pointerdown', () => this.restartGame());
+    playAgainBtn.on('pointerover', () => playAgainBtn.setScale(1.1));
+    playAgainBtn.on('pointerout', () => playAgainBtn.setScale(1));
+    container.add(playAgainBtn);
+
+    // Keyboard shortcut
+    this.input.keyboard?.once('keydown-SPACE', () => this.restartGame());
+  }
+
+  /**
+   * Restart the game
+   */
+  private restartGame(): void {
+    this.scene.restart();
+  }
+
+  /**
+   * Update timer display
+   */
+  private updateTimer(): void {
+    this.timerText.setText(this.formatTime(this.timeRemaining));
+    
+    // Change color based on time remaining
+    if (this.timeRemaining <= 30) {
+      this.timerText.setColor('#ef4444'); // Red
+    } else if (this.timeRemaining <= 60) {
+      this.timerText.setColor('#fbbf24'); // Yellow
+    } else {
+      this.timerText.setColor('#22c55e'); // Green
+    }
+  }
+
+  /**
+   * Format time for display (MM:SS)
+   */
+  private formatTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
   update(): void {

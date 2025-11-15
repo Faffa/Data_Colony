@@ -13,6 +13,7 @@ export class GridManager {
   private grid: GridCell[][];
   private gridGraphics: Phaser.GameObjects.Graphics;
   private cellGraphics: Map<string, Phaser.GameObjects.Rectangle>;
+  private onCellClickCallback?: (x: number, y: number) => void;
 
   constructor(scene: Phaser.Scene, gridSize: number = 5, cellSize: number = 80) {
     this.scene = scene;
@@ -135,6 +136,11 @@ export class GridManager {
    * Handle cell click
    */
   private onCellClick(x: number, y: number): void {
+    if (this.onCellClickCallback) {
+      this.onCellClickCallback(x, y);
+      return;
+    }
+
     console.log(`Cell clicked: (${x}, ${y})`);
     const cell = this.grid[y]![x];
     
@@ -142,7 +148,6 @@ export class GridManager {
       console.log(`Building at this cell: ${cell.buildingId}`);
     } else {
       console.log('Empty cell - ready for building placement');
-      // TODO: Open building menu
     }
     
     // Visual feedback
@@ -154,6 +159,13 @@ export class GridManager {
         cellRect.setFillStyle(cell?.buildingId ? 0x0ea5e9 : 0x1e293b);
       });
     }
+  }
+
+  /**
+   * Set cell click callback
+   */
+  public setCellClickCallback(callback: (x: number, y: number) => void): void {
+    this.onCellClickCallback = callback;
   }
 
   /**
