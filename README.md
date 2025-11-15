@@ -103,27 +103,49 @@ See [PROJECT_TODO.md](./PROJECT_TODO.md) for development history.
 
 ## 🚀 Deployment
 
-### Deploy to Netlify (Free)
+### Recommended Free Hosting Options
 
-1. **Via Netlify UI:**
-   - Go to [Netlify](https://netlify.com)
-   - Connect your GitHub repository
-   - Netlify will auto-detect settings from `netlify.toml`
+#### Option 1: GitHub Pages (100% Free, No Limits) ⭐
+
+**Automatic Deployment:**
+1. Go to your repository settings on GitHub
+2. Navigate to "Pages" → "Source" → Select "GitHub Actions"
+3. Push to `main` branch - auto-deploys via `.github/workflows/deploy.yml`
+4. Your game will be live at: `https://faffa.github.io/Data_Colony/`
+
+**Manual Deployment:**
+```powershell
+npm run build
+git checkout -b gh-pages
+cp -r dist/* .
+git add -A
+git commit -m "Deploy to GitHub Pages"
+git push origin gh-pages --force
+```
+
+#### Option 2: Vercel (Free Tier - Generous Limits)
+
+1. **Via Vercel UI:**
+   - Go to [vercel.com](https://vercel.com)
+   - Import your GitHub repository
+   - Auto-detects `vercel.json` config
    - Click "Deploy"
 
-2. **Via Netlify CLI:**
-   ```bash
-   npm install -g netlify-cli
-   netlify login
-   netlify deploy --prod
+2. **Via Vercel CLI:**
+   ```powershell
+   npm install -g vercel
+   vercel login
+   vercel --prod
    ```
 
-### Deploy to Other Platforms
+#### Option 3: Cloudflare Pages (Free, Unlimited Bandwidth)
 
-The `dist` folder can be deployed to any static hosting:
-- **Vercel**: `vercel --prod`
-- **GitHub Pages**: Copy `dist/*` to `gh-pages` branch
-- **Cloudflare Pages**: Connect repo and set build command to `npm run build`
+1. Go to [Cloudflare Pages](https://pages.cloudflare.com)
+2. Connect your GitHub repository
+3. Build settings:
+   - **Build command**: `npm run build`
+   - **Output directory**: `dist`
+4. Deploy!
 
 ### Build Statistics
 - **Total Size**: ~1.5MB (gzipped: ~340KB)
