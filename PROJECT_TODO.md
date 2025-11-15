@@ -1,32 +1,35 @@
 # 📋 DATA COLONY - PROJECT TODO LIST
 
 **Last Updated:** [Current Date]  
-**Project Status:** 🎉 **MVP COMPLETE - PRODUCTION READY**  
+**Project Status:** 🎉 **V1.1 COMPLETE - LIVE IN PRODUCTION**  
 **Target MVP Date:** ✅ ACHIEVED
 
 ---
 
 ## ✅ DEVELOPMENT COMPLETE
 
-**MVP Status**: **PRODUCTION READY**
+**Current Version**: **V1.1**
 
-All core features implemented and tested. Game is fully playable end-to-end with polished UI and persistence.
+All core features and V1.1 enhancements implemented and deployed. Game is fully playable with additional quality-of-life improvements.
 
 ### Final Build Stats
-- **Production Build**: 1.5MB total (1.48MB Phaser, 24KB game code)
+- **Production Build**: ~1.5MB total (~30KB game code, 1.48MB Phaser)
 - **Gzipped Size**: ~340KB
 - **Dev Server**: http://localhost:3000/
-- **Preview Server**: http://localhost:4173/
+- **Live URL**: https://faffa.github.io/Data_Colony/
 
-### Ready for Deployment
+### V1.1 Features (Complete)
+- ✅ Building removal with 50% refund (Shift+Click)
+- ✅ Difficulty modes: Easy/Normal/Hard
+- ✅ Visual adjacency bonus indicators (golden glow)
+
+### Ready for V1.2
 - ✅ Production build compiles cleanly
 - ✅ No TypeScript errors
-- ✅ GitHub Pages deployment configured
+- ✅ Deployed to GitHub Pages
 - ✅ All documentation updated
-- ✅ GitHub repository synchronized
-- ✅ **DEPLOYED**: https://faffa.github.io/Data_Colony/
 
-**Status**: 🎉 **LIVE IN PRODUCTION**
+**Next Phase**: V1.2 - New buildings and 7×7 grid option
 
 ---
 
@@ -358,20 +361,32 @@ All core features implemented and tested. Game is fully playable end-to-end with
 
 ---
 
-### PHASE 8: Post-Launch (v1.1+) 🌟
+### PHASE 8: Post-Launch Enhancements 🌟
 
-#### Future Enhancements (Backlog)
-- [ ] **V1.1** Add building removal feature (50% refund)
-- [ ] **V1.1** Add difficulty modes (Easy/Normal/Hard)
-- [ ] **V1.1** Visual adjacency highlights
+#### V1.1 - Quality of Life ✅ COMPLETE
+- [x] **V1.1** Add building removal feature (50% refund)
+- [x] **V1.1** Add difficulty modes (Easy/Normal/Hard)
+- [x] **V1.1** Visual adjacency highlights
+
+#### V1.2 - Content Expansion (Planned)
 - [ ] **V1.2** New buildings (3-5 additional types)
-- [ ] **V1.2** 7×7 grid unlock
+- [ ] **V1.2** 7×7 grid option
+- [ ] **V1.2** Building tooltips showing adjacency info
+
+#### V1.3 - Advanced Features (Planned)
 - [ ] **V1.3** Grid obstacles (blocked tiles)
 - [ ] **V1.3** Multiple map layouts
+- [ ] **V1.3** Building upgrade system
+
+#### V2.0 - Online Features (Future)
 - [ ] **V2.0** Online leaderboard
 - [ ] **V2.0** Achievement system
-- [ ] **V2.0** Building upgrades
-- [ ] **V3.0** Multiplayer mode
+- [ ] **V2.0** Daily challenges
+
+#### V3.0 - Multiplayer (Future)
+- [ ] **V3.0** Asynchronous multiplayer mode
+- [ ] **V3.0** Competitive leaderboards
+- [ ] **V3.0** Shared colony building
 
 ---
 

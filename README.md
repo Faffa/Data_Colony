@@ -77,9 +77,9 @@ data-colony/
 
 ## 🎯 Development Status
 
-**Current Phase**: ✅ **MVP COMPLETE!**
+**Current Phase**: ✅ **V1.1 COMPLETE!**
 
-### Features Implemented:
+### Core Features (MVP):
 - ✅ Interactive 5×5 grid system
 - ✅ 6 unique building types with emoji icons
 - ✅ Real-time resource management (CPU, Storage, Quality, Throughput)
@@ -91,6 +91,11 @@ data-colony/
 - ✅ Game statistics tracking
 - ✅ Visual placement effects
 - ✅ Complete game loop (Start → Play → End → Replay)
+
+### V1.1 Features:
+- ✅ **Building Removal** - Shift+Click to remove buildings (50% refund)
+- ✅ **Difficulty Modes** - Easy/Normal/Hard with different resources and costs
+- ✅ **Adjacency Highlights** - Visual golden glow on buildings with active bonuses
 
 See [PROJECT_TODO.md](./PROJECT_TODO.md) for development history.
 
