@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { GridManager } from '../managers/GridManager';
+import { BuildingManager } from '../managers/BuildingManager';
+import { BuildingRegistry } from '../managers/BuildingRegistry';
 import { ResourceEngine } from '../engine/ResourceEngine';
 import { TickEngine } from '../engine/TickEngine';
+import { AdjacencyEngine } from '../engine/AdjacencyEngine';
 import gameConfig from '../config/gameConfig.json';
 
 /**
@@ -9,8 +12,11 @@ import gameConfig from '../config/gameConfig.json';
  */
 export class GameScene extends Phaser.Scene {
   private gridManager!: GridManager;
+  private buildingManager!: BuildingManager;
   private resourceEngine!: ResourceEngine;
   private tickEngine!: TickEngine;
+  private adjacencyEngine!: AdjacencyEngine;
+  private buildingRegistry!: BuildingRegistry;
   private hudTexts: Map<string, Phaser.GameObjects.Text>;
   private gameStarted: boolean;
 
@@ -62,20 +68,83 @@ export class GameScene extends Phaser.Scene {
    * Initialize all game systems
    */
   private initializeGameSystems(): void {
+    // Initialize building registry
+    this.buildingRegistry = BuildingRegistry.getInstance();
+
     // Initialize resource engine with starting resources
     this.resourceEngine = new ResourceEngine(gameConfig.startingResources);
 
     // Initialize grid manager
     this.gridManager = new GridManager(this, gameConfig.gridSize);
 
+    // Initialize building manager
+    this.buildingManager = new BuildingManager(this, this.gridManager, this.resourceEngine);
+
+    // Initialize adjacency engine
+    this.adjacencyEngine = new AdjacencyEngine(this.gridManager, this.buildingManager);
+
     // Initialize tick engine
     this.tickEngine = new TickEngine(this, gameConfig.tickInterval);
 
     // Register resource update callback
     this.tickEngine.onTickCallback(() => {
+      // Calculate rates with adjacency bonuses
+      const rates = this.adjacencyEngine.calculateRatesWithAdjacency();
+      this.resourceEngine.setResourceRates(rates);
+      
+      // Update resources
       this.resourceEngine.tick();
       this.updateHUD();
     });
+
+    // Add keyboard shortcuts for building placement (testing)
+    this.setupKeyboardShortcuts();
+  }
+
+  /**
+   * Setup keyboard shortcuts for quick building placement
+   */
+  private setupKeyboardShortcuts(): void {
+    const buildings = this.buildingRegistry.getAllBuildings();
+    const keys = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'];
+
+    buildings.forEach((building, index) => {
+      if (index < keys.length) {
+        const key = keys[index];
+        this.input.keyboard?.on(`keydown-${key}`, () => {
+          console.log(`Shortcut ${index + 1}: ${building.name} (${building.icon})`);
+          // For testing: place at next available cell
+          this.placeNextBuilding(building.id);
+        });
+      }
+    });
+
+    console.log('Keyboard shortcuts: 1-6 to place buildings');
+  }
+
+  /**
+   * Place building at next available cell (for testing)
+   */
+  private placeNextBuilding(buildingId: string): void {
+    const gridSize = gameConfig.gridSize;
+    
+    for (let y = 0; y < gridSize; y++) {
+      for (let x = 0; x < gridSize; x++) {
+        const cell = this.gridManager.getCell({ x, y });
+        if (cell && !cell.buildingId) {
+          const success = this.buildingManager.placeBuilding(buildingId, { x, y });
+          if (success) {
+            // Recalculate rates
+            const rates = this.adjacencyEngine.calculateRatesWithAdjacency();
+            this.resourceEngine.setResourceRates(rates);
+            this.updateHUD();
+          }
+          return;
+        }
+      }
+    }
+    
+    console.log('Grid is full!');
   }
 
   /**
