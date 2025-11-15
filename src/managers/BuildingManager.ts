@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Building, GridPosition, Resources } from '../types';
+import { Building, GridPosition } from '../types';
 import { BuildingRegistry } from './BuildingRegistry';
 import { GridManager } from './GridManager';
 import { ResourceEngine } from '../engine/ResourceEngine';

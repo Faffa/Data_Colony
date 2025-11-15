@@ -13,7 +13,6 @@ export class BuildingMenu {
   private container: Phaser.GameObjects.Container | null;
   private isVisible: boolean;
   private onBuildingSelected?: (buildingId: string) => void;
-  private selectedPosition?: { x: number; y: number };
 
   constructor(scene: Phaser.Scene, resourceEngine: ResourceEngine) {
     this.scene = scene;
@@ -26,12 +25,11 @@ export class BuildingMenu {
   /**
    * Show menu at grid position
    */
-  public show(gridX: number, gridY: number, onSelect: (buildingId: string) => void): void {
+  public show(_gridX: number, _gridY: number, onSelect: (buildingId: string) => void): void {
     if (this.isVisible) {
       this.hide();
     }
 
-    this.selectedPosition = { x: gridX, y: gridY };
     this.onBuildingSelected = onSelect;
     this.isVisible = true;
 
@@ -48,7 +46,6 @@ export class BuildingMenu {
     }
     this.isVisible = false;
     this.onBuildingSelected = undefined;
-    this.selectedPosition = undefined;
   }
 
   /**
